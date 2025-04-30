@@ -3,11 +3,12 @@ import requests
 import csv
 from datetime import datetime
 
+
 github_token = ''
 repositories = ['BritishAirways-Ent/ops-odie-core-infra','BritishAirways-Ent/ops-odie-services','BritishAirways-Ent/ops-odie-datadog', 'BritishAirways-Ent/ops-odie-terraform-modules', 'BritishAirways-Ent/ops-odie-developer-tools']
 deployers_group = {'yuvrajunde-ba','gayathris-ba','lakshmipriyanka-ba','krishnanttd','shahrukhsayyadba','BA-OscarPocock','MuhammadTahirBA','geetha1priya','BA-Harikrishna','emmanuelanya-ba','purnimajunankar-ba','Anubhab-Mandal-BA','guhan-balaji-ba'}
 start_date = '2025-01-01T00:00:00Z'
-end_date = '2025-04-29T00:00:00Z'
+end_date = '2025-04-30T00:00:00Z'
 headers = {
     'Authorization': f'token {github_token}',
     'Accept': 'application/vnd.github+json'
@@ -81,6 +82,10 @@ def analyze_repositories():
 
                     if approved_by_deployer_group:
                         approved_by_group += 1
+                        created_at_timestramp = datetime.strptime(pr['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        created_at = created_at_timestramp.strftime("%Y-%m-%d %H:%M:%S")
+                        closed_at_timestramp = datetime.strptime(pr['closed_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        closed_at = created_at_timestramp.strftime("%Y-%m-%d %H:%M:%S")
                         if pr['user']['repos_url'].split("/")[-2] in deployers_group:
                             raised_by_which_team = "Platform"
                         else:
@@ -89,15 +94,15 @@ def analyze_repositories():
                         summary.append({
                         'repository_url': pr['repository_url'].split("/")[-1],
                         'pr_number': pr['number'],
-                        'created_at': pr['created_at'],
-                        'closed_at': pr['closed_at'],
+                        'created_at': created_at,
+                        'closed_at': closed_at,
                         'created_by': pr['user']['repos_url'].split("/")[-2],
                         'approved_by': review['user']['login'],
                         'review_count': int(review_counter),
                         'raised_by_which_team' : raised_by_which_team
                         })
 
-                        with open('pr_details.csv','w',newline='',encoding='utf-8') as f:
+                        with open('pr_details.csv','w',newline='',encoding='utf-8-sig') as f:
                             writer = csv.DictWriter(f, fieldnames=['repository_url','pr_number','created_at','closed_at','created_by','approved_by','review_count','raised_by_which_team'])
                             writer.writeheader()
                             writer.writerows(summary)
